@@ -29,23 +29,6 @@ export default function Campaigns() {
     {
       id: 0,
       category: '1',
-      members: [
-        {
-          name: 'User 01',
-          image: Image01,
-          link: '#0'
-        },
-        {
-          name: 'User 02',
-          image: Image02,
-          link: '#0'
-        },
-        {
-          name: 'User 03',
-          image: Image03,
-          link: '#0'
-        },
-      ],
       title: 'Monitor progress in Real Time Value',
       link: '#0',
       content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',

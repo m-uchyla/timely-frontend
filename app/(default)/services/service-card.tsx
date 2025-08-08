@@ -5,11 +5,6 @@ import { ServiceProperties } from './service-properties'
 interface Service {
   id: number
   category: string
-  members: {
-    name: string
-    image: StaticImageData
-    link: string
-  }[]
   title: string
   link: string
   content: string
