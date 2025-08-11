@@ -4,330 +4,117 @@ import SearchForm from '@/components/search-form'
 import FilterButton from '@/components/dropdown-filter'
 import ServiceCard from './service-card'
 import PaginationNumeric from '@/components/pagination-numeric'
-
-import Image01 from '@/public/images/user-28-01.jpg'
-import Image02 from '@/public/images/user-28-02.jpg'
-import Image03 from '@/public/images/user-28-03.jpg'
-import Image04 from '@/public/images/user-28-04.jpg'
-import Image05 from '@/public/images/user-28-05.jpg'
-import Image06 from '@/public/images/user-28-06.jpg'
-import Image07 from '@/public/images/user-28-07.jpg'
-import Image08 from '@/public/images/user-28-08.jpg'
-import Image09 from '@/public/images/user-28-09.jpg'
-import Image10 from '@/public/images/user-28-10.jpg'
-import Image11 from '@/public/images/user-28-11.jpg'
-import Image12 from '@/public/images/user-28-12.jpg'
 import ModalBasic from '@/components/modal-basic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchServices, createService, ApiError } from '@/lib/api/services'
+import { Service } from '@/lib/types/service'
+import { validateServiceForm } from '@/lib/validation/service'
 
-export default function Campaigns() {
+export default function Services() {
 
+  // State management
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [feedbackModalOpen, setFeedbackModalOpen] = useState<boolean>(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    durationMinutes: 60,
+    pausePeriodMinutes: 0,
+    isActive: true,
+    cost: '',
+    organizationId: 1 // You might want to get this from context/auth
+  })
+  const [formErrors, setFormErrors] = useState<string[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Some dummy campaigns data
-  const campaigns = [
-    {
-      id: 0,
-      category: '1',
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 1,
-      category: '2',
-      members: [
-        {
-          name: 'User 04',
-          image: Image04,
-          link: '#0'
-        },
-        {
-          name: 'User 05',
-          image: Image05,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Wstrzymana'
-    },
-    {
-      id: 3,
-      category: '3',
-      members: [
-        {
-          name: 'User 07',
-          image: Image07,
-          link: '#0'
-        },
-        {
-          name: 'User 08',
-          image: Image08,
-          link: '#0'
-        },
-        {
-          name: 'User 09',
-          image: Image09,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 4,
-      category: '1',
-      members: [
-        {
-          name: 'User 10',
-          image: Image10,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 5,
-      category: '4',
-      members: [
-        {
-          name: 'User 11',
-          image: Image11,
-          link: '#0'
-        },
-        {
-          name: 'User 05',
-          image: Image05,
-          link: '#0'
-        },
-        {
-          name: 'User 12',
-          image: Image12,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 6,
-      category: '2',
-      members: [
-        {
-          name: 'User 07',
-          image: Image07,
-          link: '#0'
-        },
-        {
-          name: 'User 04',
-          image: Image04,
-          link: '#0'
-        },
-        {
-          name: 'User 11',
-          image: Image11,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 7,
-      category: '4',
-      members: [
-        {
-          name: 'User 01',
-          image: Image01,
-          link: '#0'
-        },
-        {
-          name: 'User 02',
-          image: Image02,
-          link: '#0'
-        },
-        {
-          name: 'User 06',
-          image: Image06,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 8,
-      category: '1',
-      members: [
-        {
-          name: 'User 09',
-          image: Image09,
-          link: '#0'
-        },
-        {
-          name: 'User 01',
-          image: Image01,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Wstrzymana'
-    },
-    {
-      id: 9,
-      category: '3',
-      members: [
-        {
-          name: 'User 07',
-          image: Image07,
-          link: '#0'
-        },
-        {
-          name: 'User 08',
-          image: Image08,
-          link: '#0'
-        },
-        {
-          name: 'User 09',
-          image: Image09,
-          link: '#0'
-        },
-        {
-          name: 'User 06',
-          image: Image06,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-    {
-      id: 10,
-      category: '4',
-      members: [
-        {
-          name: 'User 06',
-          image: Image06,
-          link: '#0'
-        },
-        {
-          name: 'User 11',
-          image: Image11,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Wstrzymana'
-    },
-    {
-      id: 11,
-      category: '2',
-      members: [
-        {
-          name: 'User 05',
-          image: Image05,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Wstrzymana'
-    },
-    {
-      id: 12,
-      category: '3',
-      members: [
-        {
-          name: 'User 07',
-          image: Image07,
-          link: '#0'
-        },
-        {
-          name: 'User 08',
-          image: Image08,
-          link: '#0'
-        },
-        {
-          name: 'User 09',
-          image: Image09,
-          link: '#0'
-        },
-      ],
-      title: 'Monitor progress in Real Time Value',
-      link: '#0',
-      content: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts.',
-      dates: {
-        from: 'Jan 20',
-        to: 'Jan 27'
-      },
-      type: 'Aktywna'
-    },
-  ]
+  // Pagination and filtering state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
+
+  // Load services on component mount and when filters change
+  useEffect(() => {
+    loadServices()
+  }, [currentPage, searchQuery, filterCategory])
+
+  const loadServices = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetchServices({
+        page: currentPage,
+        limit: 12,
+        search: searchQuery || undefined,
+        category: filterCategory || undefined
+      })
+
+      setServices(response.services)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(`Failed to load services: ${err.message}`)
+      } else {
+        console.log(err)
+        setError('An unexpected error occurred while loading services')
+      }
+      console.error('Error loading services:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreateService = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setFormErrors([])
+
+    try {
+      const validation = validateServiceForm(formData)
+      
+      if (!validation.isValid) {
+        setFormErrors(validation.errors)
+        return
+      }
+
+      if (validation.data) {
+        await createService({
+          ...validation.data,
+          cost: formData.cost ? parseFloat(formData.cost) : undefined
+        })
+        setFeedbackModalOpen(false)
+        setFormData({
+          name: '',
+          description: '',
+          durationMinutes: 60,
+          pausePeriodMinutes: 0,
+          isActive: true,
+          cost: '',
+          organizationId: 1
+        })
+        // Reload services to show the new one
+        await loadServices()
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setFormErrors([`Failed to create service: ${err.message}`])
+      } else {
+        setFormErrors(['An unexpected error occurred while creating the service'])
+      }
+      console.error('Error creating service:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string | number | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
@@ -360,45 +147,126 @@ export default function Campaigns() {
             </button>
             <ModalBasic isOpen={feedbackModalOpen} setIsOpen={setFeedbackModalOpen} title="Dodaj usługę">
               {/* Modal content */}
-              <div className="px-5 py-4">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="name">
-                Nazwa <span className="text-red-500">*</span>
-              </label>
-              <input id="name" className="form-input w-full px-2 py-1" type="text" required /> 
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="description">
-                Opis <span className="text-red-500">*</span>
-              </label>
-              <textarea id="description" className="form-textarea w-full px-2 py-1" rows={4} required></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="email">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input id="email" className="form-input w-full px-2 py-1" type="email" required />
-            </div>
-            
-          </div>
-              </div>
-              {/* Modal footer */}
-              <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700/60">
-          <div className="flex flex-wrap justify-end space-x-2">
-            <button
-              className="btn-sm border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300"
-              onClick={() => {
-                setFeedbackModalOpen(false)
-              }}
-            >
-              Cancel
-            </button>
-            <button className="btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
-              Send
-            </button>
-          </div>
-              </div>
+              <form onSubmit={handleCreateService}>
+                <div className="px-5 py-4">
+                  {formErrors.length > 0 && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                      <ul className="list-disc list-inside">
+                        {formErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="name">
+                        Nazwa usługi <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        id="name" 
+                        className="form-input w-full px-2 py-1" 
+                        type="text" 
+                        value={formData.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        required 
+                      /> 
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="description">
+                        Opis
+                      </label>
+                      <textarea 
+                        id="description" 
+                        className="form-textarea w-full px-2 py-1" 
+                        rows={4} 
+                        value={formData.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                      ></textarea>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-1" htmlFor="durationMinutes">
+                          Czas trwania (minuty) <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                          id="durationMinutes" 
+                          className="form-input w-full px-2 py-1" 
+                          type="number" 
+                          min="1"
+                          value={formData.durationMinutes}
+                          onChange={(e) => handleInputChange('durationMinutes', parseInt(e.target.value) || 0)}
+                          required 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1" htmlFor="pausePeriodMinutes">
+                          Przerwa (minuty)
+                        </label>
+                        <input 
+                          id="pausePeriodMinutes" 
+                          className="form-input w-full px-2 py-1" 
+                          type="number" 
+                          min="0"
+                          value={formData.pausePeriodMinutes}
+                          onChange={(e) => handleInputChange('pausePeriodMinutes', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="cost">
+                        Koszt
+                      </label>
+                      <input 
+                        id="cost" 
+                        className="form-input w-full px-2 py-1" 
+                        type="number" 
+                        step="0.01"
+                        min="0"
+                        value={formData.cost}
+                        onChange={(e) => handleInputChange('cost', e.target.value)}
+                        placeholder="np. 99.99"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="isActive">
+                        Status
+                      </label>
+                      <select 
+                        id="isActive" 
+                        className="form-select w-full px-2 py-1"
+                        value={formData.isActive.toString()}
+                        onChange={(e) => handleInputChange('isActive', e.target.value === 'true')}
+                      >
+                        <option value="true">Aktywna</option>
+                        <option value="false">Nieaktywna</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                {/* Modal footer */}
+                <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700/60">
+                  <div className="flex flex-wrap justify-end space-x-2">
+                    <button
+                      type="button"
+                      className="btn-sm border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300"
+                      onClick={() => {
+                        setFeedbackModalOpen(false)
+                        setFormErrors([])
+                      }}
+                    >
+                      Anuluj
+                    </button>
+                    <button 
+                      type="submit"
+                      className="btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Dodawanie...' : 'Dodaj'}
+                    </button>
+                  </div>
+                </div>
+              </form>
             </ModalBasic>
             {/* End */}
           </div>
@@ -406,19 +274,51 @@ export default function Campaigns() {
 
       </div>
 
-      {/* Cards */}
-      <div className="grid grid-cols-12 gap-6">
-        {campaigns.map(campaign => (
-          <ServiceCard
-            key={campaign.id}
-            service={campaign} />
-        ))}
-      </div>
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+          <button 
+            onClick={loadServices}
+            className="ml-3 text-red-800 underline hover:no-underline"
+          >
+            Spróbuj ponownie
+          </button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <span className="ml-2 text-gray-600 dark:text-gray-400">Ładowanie usług...</span>
+        </div>
+      )}
+
+      {/* Services Cards */}
+      {!loading && (
+        <div className="grid grid-cols-12 gap-6">
+          {services.length === 0 && !error ? (
+            <div className="col-span-12 text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">Nie znaleziono żadnych usług.</p>
+            </div>
+          ) : (
+            services.map(service => (
+              <ServiceCard
+                key={service.id}
+                service={service} 
+              />
+            ))
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
-      <div className="mt-8">
-        <PaginationNumeric />
-      </div>
+      {!loading && services.length > 0 && (
+        <div className="mt-8">
+          <PaginationNumeric />
+        </div>
+      )}
 
     </div>
   )
