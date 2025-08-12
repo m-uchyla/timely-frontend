@@ -14,6 +14,23 @@ export function formatDate(input: string | number): string {
   })
 }
 
+export function formatDateToYMD(input: Date | string): string {
+  if (input instanceof Date) {
+    return input.toISOString().split('T')[0]
+  }
+  if (typeof input === 'string') {
+    return input.split('T')[0]
+  }
+  return String(input)
+}
+
+export function formatTimeToHM(time: string): string {
+  if (typeof time === 'string' && time.includes(':')) {
+    return time.split(':').slice(0, 2).join(':')
+  }
+  return time
+}
+
 export function absoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_APP_URL}${path}`
 }
