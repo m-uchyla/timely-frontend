@@ -1,14 +1,5 @@
-interface Appointment {
-  date: Date
-  startTime: string
-  endTime: string
-  notes: string | null
-  cancellationReason: string | null
-  price: number | null
-  employeeName: string,
-  serviceName: string,
-  status: 'pending' | 'confirmed' | 'declined' | 'cancelled'
-}
+import { Appointment } from '@/lib/types';
+import { formatDateToYMD, formatTimeToHM } from '@/lib/utils';
 
 export default function Card({ appointment }: { appointment: Appointment }) {
    const statusColor = new Map([
@@ -30,21 +21,23 @@ export default function Card({ appointment }: { appointment: Appointment }) {
                 {/* Card */}
                 <div className="col-span-4 order-1 sm:order-none sm:col-span-3 flex items-center space-x-4 lg:sidebar-expanded:col-span-6 xl:sidebar-expanded:col-span-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{appointment.date.toLocaleDateString()}</div>
-                    <div className="text-xs">{appointment.startTime} - {appointment.endTime}</div>
+                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                      {formatDateToYMD(appointment.appointmentDate)}
+                    </div>
+                    <div className="text-xs">{formatTimeToHM(appointment.startTime)} - {formatTimeToHM(appointment.endTime)}</div>
                   </div>
                 </div>
                 {/* Name */}
                 <div className="col-span-4 order-2 sm:order-none sm:col-span-3 text-left sm:text-center lg:sidebar-expanded:hidden xl:sidebar-expanded:block">
-                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.employeeName}</div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.employeeId}</div>
                 </div>
                 {/* Service */}
                 <div className="col-span-4 order-3 sm:order-none sm:col-span-3 text-left sm:text-center lg:sidebar-expanded:hidden xl:sidebar-expanded:block">
-                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.serviceName}</div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.serviceId}</div>
                 </div>
                 {/* Employee */}
                 <div className="col-span-4 order-4 sm:order-none sm:col-span-3 text-left sm:text-center lg:sidebar-expanded:hidden xl:sidebar-expanded:block">
-                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.employeeName}</div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{appointment.employeeId}</div>
                 </div>
                 {/* Price */}
                 <div className="col-span-4 order-5 sm:order-none sm:col-span-4 text-right sm:text-center lg:sidebar-expanded:col-span-6 xl:sidebar-expanded:col-span-4">

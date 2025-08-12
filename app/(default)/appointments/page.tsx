@@ -1,70 +1,54 @@
-export const metadata = {
-  title: 'Credit Cards - Mosaic',
-  description: 'Page description',
-}
+"use client";
 
 import Card from './card';
 import Sidebar from './sidebar';
+import { Appointment } from '@/lib/types';
+import { ApiError, fetchAppointments } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 export default function CreditCards() {
-  type Appointment = {
-    date: Date;
-    startTime: string;
-    endTime: string;
-    notes: string | null;
-    cancellationReason: string | null;
-    price: number | null;
-    employeeName: string;
-    serviceName: string;
-    status: "confirmed" | "pending" | "cancelled" | "declined";
-  };
 
-  const appointments: Appointment[] = [
-    {
-      date: new Date(),
-      startTime: "10:00",
-      endTime: "11:00",
-      notes: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      cancellationReason: null,
-      price: null,
-      employeeName: "John Doe",
-      serviceName: "Consultation",
-      status: 'confirmed'
-    },
-    {
-      date: new Date(),
-      startTime: "12:00",
-      endTime: "13:00",
-      notes: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      cancellationReason: null,
-      price: null,
-      employeeName: "Jane Smith",
-      serviceName: "Follow-up",
-      status: 'pending'
-    },
-    {
-      date: new Date(),
-      startTime: "14:00",
-      endTime: "15:00",
-      notes: null,
-      cancellationReason: "Client cancelled. Reason: Personal reasons.",
-      price: null,
-      employeeName: "Alice Johnson",
-      serviceName: "Check-up",
-      status: 'cancelled'
-    },
-    {
-      date: new Date(),
-      startTime: "16:00",
-      endTime: "17:00",
-      notes: null,
-      cancellationReason: null,
-      price: null,
-      employeeName: "Bob Brown",
-      serviceName: "Consultation",
-      status: 'declined'
-    },
-  ];
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState<boolean>(false)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Pagination and filtering state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [status, setStatus] = useState('')
+  
+      // Load appointments on component mount and when filters change
+      useEffect(() => {
+        loadAppointments()
+      }, [currentPage, searchQuery, status])
+
+      const loadAppointments = async () => {
+        try {
+          setLoading(true)
+          setError(null)
+
+          const response = await fetchAppointments({
+            page: currentPage,
+            limit: 12,
+            search: searchQuery || undefined,
+            status: status || undefined
+          })
+
+          setAppointments(response.appointments)
+        } catch (err) {
+          if (err instanceof ApiError) {
+            setError(`Failed to load appointments: ${err.message}`)
+          } else {
+            console.log(err)
+            setError('An unexpected error occurred while loading appointments')
+          }
+          console.error('Error loading appointments:', err)
+        } finally {
+          setLoading(false)
+        }
+      }
   return (
     <div className="lg:relative lg:flex bg-gray-100 dark:bg-gray-900">
 
@@ -108,10 +92,11 @@ export default function CreditCards() {
         <div className="space-y-2">
 
           {/* Cards */}
-          <Card appointment={appointments[0]} />
-          <Card appointment={appointments[1]} />
-          <Card appointment={appointments[2]} />
-          <Card appointment={appointments[3]} />
+          {loading && <p className="text-gray-500 dark:text-gray-400">Loading appointments...</p>}
+          {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
+          {appointments.map((appointment) => (
+            <Card key={appointment.id} appointment={appointment} />
+          ))}
         </div>
 
       </div>
