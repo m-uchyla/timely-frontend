@@ -1,5 +1,6 @@
 export * from './service';
 export * from './employee';
+export * from './appointment';
 
 export interface Organization {
   id: number
