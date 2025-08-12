@@ -11,9 +11,9 @@ export function isValidService(data: any): data is Service {
     typeof data.durationMinutes === 'number' &&
     typeof data.pausePeriodMinutes === 'number' &&
     typeof data.isActive === 'boolean' &&
-    (typeof data.createdAt === 'string' || data.createdAt instanceof Date) &&
-    (typeof data.lastModifiedAt === 'string' || data.lastModifiedAt instanceof Date) &&
-    (data.cost === undefined || data.cost === null || typeof data.cost === 'number') &&
+    (data.createdAt === undefined || typeof data.createdAt === 'string' || data.createdAt instanceof Date) &&
+    (data.lastModifiedAt === undefined || typeof data.lastModifiedAt === 'string' || data.lastModifiedAt instanceof Date) &&
+    (data.cost === undefined || data.cost === null || typeof data.cost === 'string') &&
     typeof data.organizationId === 'number' &&
     (data.organization === undefined || typeof data.organization === 'object')
   )

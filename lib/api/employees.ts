@@ -1,25 +1,22 @@
-import { Service, ServicesResponse } from '@/lib/types/service'
+import { Employee, EmployeesResponse } from '../types'
 import { API_BASE_URL, API_TOKEN, ApiError } from './'
-import { validateServiceArray } from '../validation/service'
 
-// Fetch services with pagination and filtering
-export async function fetchServices(params?: {
+// Fetch employees with pagination and filtering
+export async function fetchEmployees(params?: {
   page?: number
   limit?: number
   search?: string
-  category?: string
   status?: string
-}): Promise<ServicesResponse> {
+}): Promise<EmployeesResponse> {
   const searchParams = new URLSearchParams()
   
   if (params?.page) searchParams.append('page', params.page.toString())
   if (params?.limit) searchParams.append('limit', params.limit.toString())
   if (params?.search) searchParams.append('search', params.search)
-  if (params?.category) searchParams.append('category', params.category)
   if (params?.status) searchParams.append('status', params.status)
 
   const queryString = searchParams.toString()
-  const endpoint = `/services/organization${queryString ? `?${queryString}` : ''}`
+  const endpoint = `/employees/userEmployees${queryString ? `?${queryString}` : ''}`
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
@@ -38,19 +35,18 @@ export async function fetchServices(params?: {
     )
   }
 
-  const services = await response.json();
-  const validatedServices = validateServiceArray(services);
-  
-  // Since your backend returns the services array directly, we need to wrap it
+  const employees = await response.json()
+
+  // Since your backend returns the employees array directly, we need to wrap it
   return {
-    services: validatedServices || [],
-    total: validatedServices?.length || 0,
+    employees: employees || [],
+    total: employees?.length || 0,
     page: params?.page || 1,
     limit: params?.limit || 12
   }
 }
 
-// Create a new service
+// // Create a new service
 // export async function createService(service: Omit<Service, 'id' | 'createdAt' | 'lastModifiedAt'>): Promise<Service> {
 //   const response = await fetch(`${API_BASE_URL}/services`, {
 //     method: 'POST',

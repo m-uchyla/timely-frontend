@@ -1,17 +1,9 @@
 import Link from 'next/link'
 import Image, { StaticImageData } from 'next/image'
 import EditMenu from '@/components/edit-menu'
+import { Employee } from '@/lib/types'
 
-interface User {
-  id: number
-  name: string
-  image: StaticImageData
-  link: string
-  location: string
-  content: string
-}
-
-export default function TileCard({ user }: { user: User}) {
+export default function TileCard({ employee }: { employee: Employee }) {
   return (
     <div className="col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
       <div className="flex flex-col h-full">
@@ -23,7 +15,7 @@ export default function TileCard({ user }: { user: User}) {
               <div className="flex mb-2">
                 <div className="mt-1 pr-1">
                   <div className="inline-flex text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
-                    <h2 className="text-xl leading-snug justify-center font-semibold">{user.name}</h2>
+                    <h2 className="text-xl leading-snug justify-center font-semibold">{employee.firstName} {employee.lastName}</h2>
                   </div>
                 </div>
               </div>

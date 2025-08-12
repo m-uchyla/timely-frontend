@@ -17,11 +17,53 @@ import Image10 from '@/public/images/user-64-10.jpg'
 import Image11 from '@/public/images/user-64-11.jpg'
 import Image12 from '@/public/images/user-64-12.jpg'
 import ModalBasic from '@/components/modal-basic'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Employee } from '@/lib/types'
+import { ApiError, fetchEmployees } from '@/lib/api'
 
 export default function UsersTabs() {
 
   const [feedbackModalOpen, setFeedbackModalOpen] = useState<boolean>(false)
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+    // Pagination and filtering state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [status, setStatus] = useState('')
+
+    // Load services on component mount and when filters change
+    useEffect(() => {
+      loadServices()
+    }, [currentPage, searchQuery, status])
+  
+    const loadServices = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const response = await fetchEmployees({
+          page: currentPage,
+          limit: 12,
+          search: searchQuery || undefined,
+          status: status || undefined
+        })
+
+        setEmployees(response.employees)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(`Failed to load services: ${err.message}`)
+        } else {
+          console.log(err)
+          setError('An unexpected error occurred while loading services')
+        }
+        console.error('Error loading services:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
   // Some dummy users data
   const users = [
@@ -200,10 +242,10 @@ export default function UsersTabs() {
 
       {/* Cards */}
       <div className="grid grid-cols-12 gap-6">
-        {users.map(user => (
+        {employees.map(employee => (
           <TileCard
-            key={user.id}
-            user={user} />
+            key={employee.id}
+            employee={employee} />
         ))}
       </div>
 

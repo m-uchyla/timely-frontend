@@ -6,7 +6,7 @@ import ServiceCard from './service-card'
 import PaginationNumeric from '@/components/pagination-numeric'
 import ModalBasic from '@/components/modal-basic'
 import { useState, useEffect } from 'react'
-import { fetchServices, createService, ApiError } from '@/lib/api/services'
+import { fetchServices, ApiError } from '@/lib/api'
 import { Service } from '@/lib/types/service'
 import { validateServiceForm } from '@/lib/validation/service'
 
@@ -80,10 +80,10 @@ export default function Services() {
       }
 
       if (validation.data) {
-        await createService({
-          ...validation.data,
-          cost: formData.cost ? parseFloat(formData.cost) : undefined
-        })
+        // await createService({
+        //   ...validation.data,
+        //   cost: formData.cost ? parseFloat(formData.cost) : undefined
+        // })
         setFeedbackModalOpen(false)
         setFormData({
           name: '',

@@ -11,8 +11,6 @@ export interface Service {
   durationMinutes: number
   pausePeriodMinutes: number
   isActive: boolean
-  createdAt: string | Date
-  lastModifiedAt: string | Date
   cost?: string | number // Handle both string and number formats from backend
   organizationId: number
   organization?: Organization
