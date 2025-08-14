@@ -1,5 +1,6 @@
-import { Appointment, AppointmentsResponse } from '../types'
+import { Appointment, PanelResponse } from '../types'
 import { API_BASE_URL, API_TOKEN, ApiError } from '.'
+import { validateAppointmentArray, isValidAppointment } from '../validation'
 
 // Fetch appointments with pagination and filtering
 export async function fetchAppointments(params?: {
@@ -7,16 +8,15 @@ export async function fetchAppointments(params?: {
   limit?: number
   search?: string
   status?: string
-}): Promise<AppointmentsResponse> {
+}): Promise<PanelResponse<Appointment[]>> {
   const searchParams = new URLSearchParams()
   
   if (params?.page) searchParams.append('page', params.page.toString())
   if (params?.limit) searchParams.append('limit', params.limit.toString())
-  if (params?.search) searchParams.append('search', params.search)
   if (params?.status) searchParams.append('status', params.status)
 
   const queryString = searchParams.toString()
-  const endpoint = `/appointments${queryString ? `?${queryString}` : ''}`
+  const endpoint = `/panel/appointments${queryString ? `?${queryString}` : ''}`
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
@@ -35,14 +35,135 @@ export async function fetchAppointments(params?: {
     )
   }
 
-  const appointments = await response.json()
+  const appointmentsData = await response.json()
 
-  // Since your backend returns the appointments array directly, we need to wrap it
-  return {
-    appointments: appointments || [],
-    total: appointments?.length || 0,
-    page: params?.page || 1,
-    limit: params?.limit || 12
+  // Validate the response structure
+  // if (appointmentsData && Array.isArray(appointmentsData.data)) {
+  //   appointmentsData.data = validateAppointmentArray(appointmentsData.data)
+  // }
+
+  return appointmentsData
+}
+
+// Get a single appointment by ID
+export async function getAppointment(id: number): Promise<Appointment> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+    },
+    mode: 'cors',
+    credentials: 'omit',
+  })
+
+  if (!response.ok) {
+    throw new ApiError(
+      `HTTP error! status: ${response.status}`,
+      response.status
+    )
+  }
+
+  const appointmentData = await response.json()
+  
+  // Validate the appointment data
+  if (!isValidAppointment(appointmentData)) {
+    throw new ApiError('Invalid appointment data received from server', 422)
+  }
+
+  return appointmentData
+}
+
+// Create a new appointment
+export async function createAppointment(appointment: Omit<Appointment, 'id'>): Promise<Appointment> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+    },
+    mode: 'cors',
+    credentials: 'omit',
+    body: JSON.stringify(appointment),
+  })
+
+  if (!response.ok) {
+    throw new ApiError(
+      `HTTP error! status: ${response.status}`,
+      response.status
+    )
+  }
+
+  const newAppointmentData = await response.json()
+  
+  // Validate the new appointment data
+  if (!isValidAppointment(newAppointmentData)) {
+    throw new ApiError('Invalid appointment data received from server', 422)
+  }
+
+  return newAppointmentData
+}
+
+// Update an existing appointment
+export async function updateAppointment(id: number, appointment: Partial<Appointment>): Promise<Appointment> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+    },
+    mode: 'cors',
+    credentials: 'omit',
+    body: JSON.stringify(appointment),
+  })
+
+  if (!response.ok) {
+    throw new ApiError(
+      `HTTP error! status: ${response.status}`,
+      response.status
+    )
+  }
+
+  const updatedAppointmentData = await response.json()
+  
+  // Validate the updated appointment data
+  if (!isValidAppointment(updatedAppointmentData)) {
+    throw new ApiError('Invalid appointment data received from server', 422)
+  }
+
+  return updatedAppointmentData
+}
+
+// Update appointment status
+export async function updateAppointmentStatus(id: number, status: Appointment['status'], cancellationReason?: string): Promise<Appointment> {
+  const updateData: Partial<Appointment> = { status }
+  if (cancellationReason) {
+    updateData.cancellationReason = cancellationReason
+  }
+
+  return updateAppointment(id, updateData)
+}
+
+// Delete an appointment
+export async function deleteAppointment(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+    },
+    mode: 'cors',
+    credentials: 'omit',
+  })
+
+  if (!response.ok) {
+    throw new ApiError(
+      `HTTP error! status: ${response.status}`,
+      response.status
+    )
   }
 }
 

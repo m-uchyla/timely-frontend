@@ -1,24 +1,26 @@
-import { Employee, Service } from ".";
-
-export interface Appointment {
-  id: number
-  appointmentDate: Date | string
-  startTime: string
-  endTime: string
-  status: 'pending' | 'confirmed' | 'declined' | 'cancelled'
-  notes?: string
-  cancellationReason?: string
-  price?: string | number // Handle both string and number formats from backend
-  employeeId: number
-  employee?: Employee
-  serviceId: number
-  service?: Service
-
-}
-
-export interface AppointmentsResponse {
-  appointments: Appointment[]
-  total: number
-  page: number
-  limit: number
-}
+export type Appointment = {
+  id: number;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'confirmed' | 'declined' | 'cancelled';
+  notes?: string;
+  cancellationReason?: string;
+  price?: number;
+  employee: {
+    id: number;
+    name: string;
+  };
+  service: {
+    id: number;
+    name: string;
+    description?: string;
+    durationMinutes: number;
+  };
+  client: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+  };
+};

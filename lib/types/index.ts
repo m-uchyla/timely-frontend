@@ -13,3 +13,18 @@ export interface ApiResponse<T> {
   success: boolean
   message?: string
 }
+
+export type Pagination = {
+  page: number;
+  totalPages: number;
+  limit: number;
+  total: number;
+  items: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+};
+
+export type PanelResponse<T> = {
+  data: T;
+  pagination: Pagination;
+};
