@@ -11,14 +11,16 @@ export default function Card({ appointment, isSelected = false, onSelect }: Card
    const statusColor = new Map([
     ['pending', 'bg-yellow-500/20 text-yellow-700'],
     ['confirmed', 'bg-green-500/20 text-green-700'],
-    ['declined', 'bg-gray-500/20 text-gray-700'],
-    ['cancelled', 'bg-red-500/20 text-red-700']
+    ['declined', 'bg-gray-500/20 text-red-400'],
+    ['cancelled', 'bg-red-500/20 text-red-700'],
+    ['archived', 'bg-gray-500/20 text-gray-500']
   ]);
   const statusToText = new Map([
     ['pending', 'Oczekująca'],
     ['confirmed', 'Aktywna'],
     ['declined', 'Odrzucona'],
-    ['cancelled', 'Anulowana']
+    ['cancelled', 'Anulowana'],
+    ['archived', 'Zarchiwizowana']
   ]);
   return (<label className="relative block cursor-pointer text-left w-full bg-white dark:bg-gray-900">
             <input 
@@ -78,7 +80,7 @@ export default function Card({ appointment, isSelected = false, onSelect }: Card
                 </div>
                 
                 {/* Price */}
-                <div className="col-span-2 text-left">
+                <div className="col-span-1 text-left">
                   <div className="flex items-center">
                     <svg className="w-4 h-4 text-green-500 dark:text-green-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
@@ -91,7 +93,7 @@ export default function Card({ appointment, isSelected = false, onSelect }: Card
                 </div>
                 
                 {/* Status */}
-                <div className="col-span-1 text-right">
+                <div className="col-span-2 text-right">
                   <div className={`text-xs inline-flex font-medium ${statusColor.get(appointment.status)} rounded-full px-2.5 py-1`}>
                     {statusToText.get(appointment.status)}
                   </div>

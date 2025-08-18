@@ -2,13 +2,14 @@
 
 import Card from './card';
 import Sidebar from './sidebar';
+import AppointmentModal from './appointment-modal';
 import { Appointment } from '@/lib/types';
 import { ApiError, fetchAppointments } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
 export default function CreditCards() {
 
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState<boolean>(false)
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState<boolean>(false)
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +19,7 @@ export default function CreditCards() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState('today')
   const [limit, setLimit] = useState(10)
   
       // Load appointments on component mount and when filters change
@@ -41,22 +42,28 @@ export default function CreditCards() {
             page: currentPage,
             limit: limit,
             search: searchQuery || undefined,
-            status: status || undefined
+            status: status || undefined,
+            date: status === 'today' ? new Date().toISOString().split('T')[0] : undefined
           })
 
           setAppointments(response.data)
         } catch (err) {
           if (err instanceof ApiError) {
-            setError(`Failed to load appointments: ${err.message}`)
+            setError(`Nie udało się załadować rezerwacji. Prosimy o kontakt z supportem.`)
           } else {
             console.log(err)
-            setError('An unexpected error occurred while loading appointments')
+            setError('Nie udało się załadować rezerwacji. Prosimy o kontakt z supportem.')
           }
           console.error('Error loading appointments:', err)
         } finally {
           setLoading(false)
         }
       }
+
+  const handleAppointmentCreated = async () => {
+    await loadAppointments()
+  }
+
   return (
     <div className="lg:relative lg:flex bg-gray-100 dark:bg-gray-900">
 
@@ -70,9 +77,6 @@ export default function CreditCards() {
           <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Rezerwacje</h1>
           </div>
-
-          {/* Add card button */}
-          <button className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">Dodaj rezerwację</button>
         </div>
 
         {/* Filters and Pagination */}
@@ -80,18 +84,6 @@ export default function CreditCards() {
           {/* Filter Buttons */}
           <div className="flex-1">
             <ul className="flex flex-wrap -m-1">
-              <li className="m-1">
-                <button 
-                  onClick={() => setStatus('today')}
-                  className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border transition ${
-                    status === 'today' 
-                      ? 'border-transparent shadow-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' 
-                      : 'border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'
-                  }`}
-                >
-                  Dzisiejsze
-                </button>
-              </li>
               <li className="m-1">
                 <button 
                   onClick={() => setStatus('')}
@@ -102,6 +94,18 @@ export default function CreditCards() {
                   }`}
                 >
                   Wszystkie
+                </button>
+              </li>
+              <li className="m-1">
+                <button 
+                  onClick={() => setStatus('today')}
+                  className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border transition ${
+                    status === 'today' 
+                      ? 'border-transparent shadow-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' 
+                      : 'border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  Dzisiejsze
                 </button>
               </li>
               <li className="m-1">
@@ -152,6 +156,18 @@ export default function CreditCards() {
                   Anulowane
                 </button>
               </li>
+              <li className="m-1">
+                <button 
+                  onClick={() => setStatus('archived')}
+                  className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border transition ${
+                    status === 'archived' 
+                      ? 'border-transparent shadow-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' 
+                      : 'border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  Archiwalne
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -163,7 +179,7 @@ export default function CreditCards() {
               <select 
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
-                className="text-sm border border-gray-200 dark:border-gray-700/60 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-300"
+                className="text-sm border border-gray-200 dark:border-gray-700/60 rounded pl-3 pr-8 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-300"
               >
                 <option value={5}>5</option>
                 <option value={15}>15</option>
