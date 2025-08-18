@@ -8,12 +8,19 @@ export async function fetchAppointments(params?: {
   limit?: number
   search?: string
   status?: string
+  date?: string
 }): Promise<PanelResponse<Appointment[]>> {
   const searchParams = new URLSearchParams()
   
   if (params?.page) searchParams.append('page', params.page.toString())
   if (params?.limit) searchParams.append('limit', params.limit.toString())
-  if (params?.status) searchParams.append('status', params.status)
+  if (params?.status && params.status !== 'today') searchParams.append('status', params.status)
+  if(params?.status === 'today'){
+    searchParams.append('status', 'pending,confirmed')
+  } 
+  if(params?.date) {
+    searchParams.append('date', params.date)
+  }
 
   const queryString = searchParams.toString()
   const endpoint = `/panel/appointments${queryString ? `?${queryString}` : ''}`

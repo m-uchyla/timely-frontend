@@ -10,7 +10,7 @@ export function isValidAppointment(data: any): data is Appointment {
     typeof data.startTime === 'string' &&
     typeof data.endTime === 'string' &&
     typeof data.status === 'string' &&
-    ['pending', 'confirmed', 'declined', 'cancelled'].includes(data.status) &&
+    ['pending', 'confirmed', 'declined', 'cancelled', 'archived'].includes(data.status) &&
     (data.notes === undefined || data.notes === null || typeof data.notes === 'string') &&
     (data.cancellationReason === undefined || data.cancellationReason === null || typeof data.cancellationReason === 'string') &&
     (data.price === undefined || data.price === null || typeof data.price === 'number') &&
@@ -220,4 +220,77 @@ export function hasTimeConflict(
 
   // Check if times overlap
   return !(end1 <= start2 || end2 <= start1)
+}
+
+// Simple form validation for appointment creation
+export function validateAppointmentFormData(formData: {
+  date: string
+  time: string
+  clientName: string
+  clientEmail: string
+  clientPhone: string
+  serviceName: string
+  employeeName: string
+  notes: string
+}): {
+  isValid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
+
+  // Date validation
+  if (!formData.date || formData.date.trim().length === 0) {
+    errors.push('Data jest wymagana')
+  } else {
+    const appointmentDate = new Date(formData.date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (appointmentDate < today) {
+      errors.push('Data nie może być z przeszłości')
+    }
+  }
+
+  // Time validation
+  if (!formData.time || formData.time.trim().length === 0) {
+    errors.push('Godzina jest wymagana')
+  }
+
+  // Client validation
+  if (!formData.clientName || formData.clientName.trim().length === 0) {
+    errors.push('Imię i nazwisko klienta jest wymagane')
+  }
+
+  if (!formData.clientEmail || formData.clientEmail.trim().length === 0) {
+    errors.push('Email klienta jest wymagany')
+  } else {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.clientEmail)) {
+      errors.push('Email klienta ma nieprawidłowy format')
+    }
+  }
+
+  // Service validation
+  if (!formData.serviceName || formData.serviceName.trim().length === 0) {
+    errors.push('Nazwa usługi jest wymagana')
+  }
+
+  // Employee validation
+  if (!formData.employeeName || formData.employeeName.trim().length === 0) {
+    errors.push('Pracownik jest wymagany')
+  }
+
+  // Phone validation (optional, but if provided should be valid)
+  if (formData.clientPhone && formData.clientPhone.trim().length > 0) {
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{9,}$/
+    if (!phoneRegex.test(formData.clientPhone)) {
+      errors.push('Numer telefonu ma nieprawidłowy format')
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
