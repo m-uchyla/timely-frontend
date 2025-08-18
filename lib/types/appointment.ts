@@ -3,7 +3,7 @@ export type Appointment = {
   date: Date;
   startTime: string;
   endTime: string;
-  status: 'pending' | 'confirmed' | 'declined' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'declined' | 'cancelled' | 'archived';
   notes?: string;
   cancellationReason?: string;
   price?: number;

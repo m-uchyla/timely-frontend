@@ -83,8 +83,8 @@ export function validateAppointmentForm(formData: any): {
   }
 
   // Status validation
-  if (!formData.status || !['pending', 'confirmed', 'declined', 'cancelled'].includes(formData.status)) {
-    errors.push('Status must be one of: pending, confirmed, declined, cancelled')
+  if (!formData.status || !['pending', 'confirmed', 'declined', 'cancelled', 'archived'].includes(formData.status)) {
+    errors.push('Status must be one of: pending, confirmed, declined, cancelled, archived')
   }
 
   // Optional fields validation
@@ -189,10 +189,11 @@ export function validateAppointmentForm(formData: any): {
 // Helper function to validate appointment status transitions
 export function isValidStatusTransition(currentStatus: Appointment['status'], newStatus: Appointment['status']): boolean {
   const validTransitions: Record<Appointment['status'], Appointment['status'][]> = {
-    pending: ['confirmed', 'declined', 'cancelled'],
-    confirmed: ['cancelled'],
-    declined: ['pending'],
-    cancelled: []
+    pending: ['confirmed', 'declined', 'cancelled', 'archived'],
+    confirmed: ['cancelled', 'archived'],
+    declined: ['pending', 'archived'],
+    cancelled: ['archived'],
+    archived: []
   }
 
   return validTransitions[currentStatus]?.includes(newStatus) || false

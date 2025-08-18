@@ -1,6 +1,7 @@
 import ServiceCard from "../services/service-card";
 import { Appointment } from '@/lib/types';
 import { formatDateToYMD, formatTimeToHM } from '@/lib/utils';
+import { ar } from "date-fns/locale";
 
 interface SidebarProps {
   selectedAppointment?: Appointment | null;
@@ -12,7 +13,8 @@ const getStatusColor = (status: Appointment['status']): string => {
     pending: 'bg-yellow-500',
     confirmed: 'bg-green-500',
     declined: 'bg-gray-500',
-    cancelled: 'bg-red-500'
+    cancelled: 'bg-red-500',
+    archived: 'bg-gray-800'
   };
   return statusColors[status];
 };
@@ -22,7 +24,8 @@ const getStatusText = (status: Appointment['status']): string => {
     pending: 'Oczekująca',
     confirmed: 'Potwierdzona',
     declined: 'Odrzucona',
-    cancelled: 'Anulowana'
+    cancelled: 'Anulowana',
+    archived: 'Zarchiwizowana'
   };
   return statusTexts[status];
 };

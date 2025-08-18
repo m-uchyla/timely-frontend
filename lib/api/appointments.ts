@@ -16,7 +16,7 @@ export async function fetchAppointments(params?: {
   if (params?.limit) searchParams.append('limit', params.limit.toString())
   if (params?.status && params.status !== 'today') searchParams.append('status', params.status)
   if(params?.status === 'today'){
-    searchParams.append('status', 'pending,confirmed')
+    searchParams.append('status', 'pending,confirmed,archived')
   } 
   if(params?.date) {
     searchParams.append('date', params.date)
@@ -48,6 +48,20 @@ export async function fetchAppointments(params?: {
   // if (appointmentsData && Array.isArray(appointmentsData.data)) {
   //   appointmentsData.data = validateAppointmentArray(appointmentsData.data)
   // }
+
+  // Sort appointments to push archived ones to the end
+  if (appointmentsData && Array.isArray(appointmentsData.data)) {
+    appointmentsData.data = appointmentsData.data.sort((a: Appointment, b: Appointment) => {
+      // If both are archived or both are not archived, maintain original order
+      if ((a.status === 'archived') === (b.status === 'archived')) {
+        return 0
+      }
+      // Push archived appointments to the end
+      if (a.status === 'archived') return 1
+      if (b.status === 'archived') return -1
+      return 0
+    })
+  }
 
   return appointmentsData
 }
