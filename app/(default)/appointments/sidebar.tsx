@@ -1,10 +1,15 @@
+"use client";
+
 import ServiceCard from "../services/service-card";
 import { Appointment } from '@/lib/types';
 import { formatDateToYMD, formatTimeToHM } from '@/lib/utils';
-import { ar } from "date-fns/locale";
+import { confirmAppointment, declineAppointment, ApiError } from '@/lib/api';
+import { useState } from 'react';
+import Toast from "@/components/toast";
 
 interface SidebarProps {
   selectedAppointment?: Appointment | null;
+  onAppointmentUpdated?: () => void;
 }
 
 // Helper functions for status display
@@ -30,7 +35,68 @@ const getStatusText = (status: Appointment['status']): string => {
   return statusTexts[status];
 };
 
-export default function Sidebar({ selectedAppointment }: SidebarProps) {
+export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: SidebarProps) {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeclining, setIsDeclining] = useState(false);
+  const [showDeclineReason, setShowDeclineReason] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [toastConfirmErrorOpen, setToastConfirmErrorOpen] = useState<boolean>(true)
+  const [toastConfirmSuccessOpen, setToastConfirmSuccessOpen] = useState<boolean>(true)
+  const [toastDeclineErrorOpen, setToastDeclineErrorOpen] = useState<boolean>(true)
+  const [toastDeclineSuccessOpen, setToastDeclineSuccessOpen] = useState<boolean>(true)
+
+  const handleConfirmAppointment = async () => {
+    if (!selectedAppointment) return;
+    
+    setIsConfirming(true);
+    try {
+      await confirmAppointment(selectedAppointment.id);
+      onAppointmentUpdated?.();
+      <Toast type="success" open={toastConfirmSuccessOpen} setOpen={setToastConfirmSuccessOpen}>
+        Rezerwacja została potwierdzona
+      </Toast>
+    } catch (error) {
+      console.error('Error confirming appointment:', error);
+      <Toast type="error" open={toastConfirmErrorOpen} setOpen={setToastConfirmErrorOpen}>
+        Wystąpił błąd podczas potwierdzania rezerwacji
+      </Toast>
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const handleDeclineAppointment = async () => {
+    if (!selectedAppointment) return;
+    
+    if (!showDeclineReason) {
+      setShowDeclineReason(true);
+      return;
+    }
+    
+    setIsDeclining(true);
+    try {
+      await declineAppointment(selectedAppointment.id, declineReason.trim() || undefined);
+      onAppointmentUpdated?.();
+      setShowDeclineReason(false);
+      setDeclineReason('');
+      <Toast type="success" open={toastDeclineSuccessOpen} setOpen={setToastDeclineSuccessOpen}>
+        Rezerwacja została odrzucona
+      </Toast>
+    } catch (error) {
+      console.error('Error declining appointment:', error);
+      <Toast type="error" open={toastDeclineErrorOpen} setOpen={setToastDeclineErrorOpen}>
+        Wystąpił błąd podczas odrzucania rezerwacji
+      </Toast>
+    } finally {
+      setIsDeclining(false);
+    }
+  };
+
+  const handleCancelDecline = () => {
+    setShowDeclineReason(false);
+    setDeclineReason('');
+  };
+
   return (
     <div>
         <div className="lg:sticky lg:top-16 bg-linear-to-b from-gray-100 to-white dark:from-gray-800/30 dark:to-gray-900 lg:overflow-x-hidden lg:overflow-y-auto no-scrollbar lg:shrink-0 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700/60 lg:w-[390px] lg:h-[calc(100dvh-64px)]">
@@ -146,25 +212,89 @@ export default function Sidebar({ selectedAppointment }: SidebarProps) {
                           <div className="text-sm text-gray-600 dark:text-gray-400">{selectedAppointment.notes}</div>
                         </li>
                       )}
+                      {selectedAppointment.cancellationReason && (selectedAppointment.status === 'declined' || selectedAppointment.status === 'cancelled') && (
+                        <li className="mt-2 flex flex-col py-3 border-b border-gray-200 dark:border-gray-700/60">
+                          <div className="flex items-center text-sm mb-2">
+                            <svg className="w-4 h-4 text-red-500 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {selectedAppointment.status === 'declined' ? 'Powód odrzucenia' : 'Powód anulowania'}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{selectedAppointment.cancellationReason}</div>
+                        </li>
+                      )}
                     </ul>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex flex-col space-y-3 mt-6">
-                    {selectedAppointment.status === 'pending' && (
+                    {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed') && (
                       <>
-                        <button className="btn w-full bg-green-600 hover:bg-green-700 text-white">
-                          <svg className="fill-current shrink-0" width="16" height="16" viewBox="0 0 16 16">
-                            <path d="M12.5 2.5 5.5 9.5 3 7l-1.5 1.5L5.5 12.5 14 4z"/>
-                          </svg>
-                          <span className="ml-2">Potwierdź rezerwację</span>
-                        </button>
-                        <button className="btn w-full border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300">
-                          <svg className="fill-current shrink-0" width="16" height="16" viewBox="0 0 16 16">
-                            <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zM4 7h8v2H4V7z"/>
-                          </svg>
-                          <span className="ml-2">Odrzuć rezerwację</span>
-                        </button>
+                        {selectedAppointment.status === 'pending' && (
+                          <button 
+                            onClick={handleConfirmAppointment}
+                            disabled={isConfirming || isDeclining}
+                            className="btn w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <svg className="fill-current shrink-0" width="16" height="16" viewBox="0 0 16 16">
+                              <path d="M12.5 2.5 5.5 9.5 3 7l-1.5 1.5L5.5 12.5 14 4z"/>
+                            </svg>
+                            <span className="ml-2">
+                              {isConfirming ? 'Potwierdzanie...' : 'Potwierdź rezerwację'}
+                            </span>
+                          </button>
+                        )}
+                        
+                        {!showDeclineReason ? (
+                          <button 
+                            onClick={handleDeclineAppointment}
+                            disabled={isConfirming || isDeclining}
+                            className="btn w-full border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <svg className="fill-current shrink-0" width="16" height="16" viewBox="0 0 16 16">
+                              <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zM4 7h8v2H4V7z"/>
+                            </svg>
+                            <span className="ml-2">
+                              {selectedAppointment.status === 'pending' ? 'Odrzuć rezerwację' : 'Anuluj rezerwację'}
+                            </span>
+                          </button>
+                        ) : (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                {selectedAppointment.status === 'pending' ? 'Powód odrzucenia (opcjonalnie)' : 'Powód anulowania (opcjonalnie)'}
+                              </label>
+                              <textarea
+                                value={declineReason}
+                                onChange={(e) => setDeclineReason(e.target.value)}
+                                className="form-textarea w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700/60 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-300"
+                                rows={3}
+                                placeholder={selectedAppointment.status === 'pending' ? 'np. Konflikt w kalendarzu...' : 'np. Nagła sytuacja losowa...'}
+                              />
+                            </div>
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={handleDeclineAppointment}
+                                disabled={isDeclining}
+                                className="btn flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <span className="text-sm">
+                                  {isDeclining ? 
+                                    'Odrzucanie...' : 
+                                    'Odrzuć'
+                                  }
+                                </span>
+                              </button>
+                              <button 
+                                onClick={handleCancelDecline}
+                                disabled={isDeclining}
+                                className="btn flex-1 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <span className="text-sm">Anuluj</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

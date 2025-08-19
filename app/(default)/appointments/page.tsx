@@ -287,7 +287,10 @@ export default function CreditCards() {
       </div>
 
       {/* Sidebar */}
-      <Sidebar selectedAppointment={selectedAppointment} />
+      <Sidebar 
+        selectedAppointment={selectedAppointment} 
+        onAppointmentUpdated={handleAppointmentCreated}
+      />
 
     </div>
   )

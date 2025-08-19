@@ -50,7 +50,7 @@ export async function fetchAppointments(params?: {
   // }
 
   // Sort appointments to push archived ones to the end
-  if (appointmentsData && Array.isArray(appointmentsData.data)) {
+  if ((params && params.status) && appointmentsData && Array.isArray(appointmentsData.data)) {
     appointmentsData.data = appointmentsData.data.sort((a: Appointment, b: Appointment) => {
       // If both are archived or both are not archived, maintain original order
       if ((a.status === 'archived') === (b.status === 'archived')) {
@@ -95,82 +95,10 @@ export async function getAppointment(id: number): Promise<Appointment> {
   return appointmentData
 }
 
-// Create a new appointment
-export async function createAppointment(appointment: Omit<Appointment, 'id'>): Promise<Appointment> {
-  const response = await fetch(`${API_BASE_URL}/panel/appointments`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-    },
-    mode: 'cors',
-    credentials: 'omit',
-    body: JSON.stringify(appointment),
-  })
-
-  if (!response.ok) {
-    throw new ApiError(
-      `HTTP error! status: ${response.status}`,
-      response.status
-    )
-  }
-
-  const newAppointmentData = await response.json()
-  
-  // Validate the new appointment data
-  if (!isValidAppointment(newAppointmentData)) {
-    throw new ApiError('Invalid appointment data received from server', 422)
-  }
-
-  return newAppointmentData
-}
-
-// Update an existing appointment
-export async function updateAppointment(id: number, appointment: Partial<Appointment>): Promise<Appointment> {
-  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-    },
-    mode: 'cors',
-    credentials: 'omit',
-    body: JSON.stringify(appointment),
-  })
-
-  if (!response.ok) {
-    throw new ApiError(
-      `HTTP error! status: ${response.status}`,
-      response.status
-    )
-  }
-
-  const updatedAppointmentData = await response.json()
-  
-  // Validate the updated appointment data
-  if (!isValidAppointment(updatedAppointmentData)) {
-    throw new ApiError('Invalid appointment data received from server', 422)
-  }
-
-  return updatedAppointmentData
-}
-
-// Update appointment status
-export async function updateAppointmentStatus(id: number, status: Appointment['status'], cancellationReason?: string): Promise<Appointment> {
-  const updateData: Partial<Appointment> = { status }
-  if (cancellationReason) {
-    updateData.cancellationReason = cancellationReason
-  }
-
-  return updateAppointment(id, updateData)
-}
-
-// Delete an appointment
-export async function deleteAppointment(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}`, {
-    method: 'DELETE',
+// Confirm an appointment (change status from pending to confirmed)
+export async function confirmAppointment(id: number): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}/confirm`, {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -186,98 +114,30 @@ export async function deleteAppointment(id: number): Promise<void> {
       response.status
     )
   }
+
+  return await response.json()
 }
 
-// // Create a new service
-// export async function createService(service: Omit<Service, 'id' | 'createdAt' | 'lastModifiedAt'>): Promise<Service> {
-//   const response = await fetch(`${API_BASE_URL}/services`, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//       ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-//     },
-//     mode: 'cors',
-//     credentials: 'omit',
-//     body: JSON.stringify(service),
-//   })
+// Decline an appointment (change status from pending to declined)
+export async function declineAppointment(id: number, cancellationReason?: string): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/panel/appointments/${id}/decline`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+    },
+    mode: 'cors',
+    credentials: 'omit',
+    body: cancellationReason ? JSON.stringify({ cancellationReason }) : undefined,
+  })
 
-//   if (!response.ok) {
-//     throw new ApiError(
-//       `HTTP error! status: ${response.status}`,
-//       response.status
-//     )
-//   }
+  if (!response.ok) {
+    throw new ApiError(
+      `HTTP error! status: ${response.status}`,
+      response.status
+    )
+  }
 
-//   const newService = await response.json()
-//   return newService
-// }
-
-// // Update an existing service
-// export async function updateService(id: number, service: Partial<Service>): Promise<Service> {
-//   const response = await fetch(`${API_BASE_URL}/services/${id}`, {
-//     method: 'PUT',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//       ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-//     },
-//     mode: 'cors',
-//     credentials: 'omit',
-//     body: JSON.stringify(service),
-//   })
-
-//   if (!response.ok) {
-//     throw new ApiError(
-//       `HTTP error! status: ${response.status}`,
-//       response.status
-//     )
-//   }
-
-//   const updatedService = await response.json()
-//   return updatedService
-// }
-
-// // Delete a service
-// export async function deleteService(id: number): Promise<void> {
-//   const response = await fetch(`${API_BASE_URL}/services/${id}`, {
-//     method: 'DELETE',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//       ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-//     },
-//     mode: 'cors',
-//     credentials: 'omit',
-//   })
-
-//   if (!response.ok) {
-//     throw new ApiError(
-//       `HTTP error! status: ${response.status}`,
-//       response.status
-//     )
-//   }
-// }
-
-// // Get a single service by ID
-// export async function getService(id: number): Promise<Service> {
-//   const response = await fetch(`${API_BASE_URL}/services/${id}`, {
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//       ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
-//     },
-//     mode: 'cors',
-//     credentials: 'omit',
-//   })
-
-//   if (!response.ok) {
-//     throw new ApiError(
-//       `HTTP error! status: ${response.status}`,
-//       response.status
-//     )
-//   }
-
-//   const service = await response.json()
-//   return service
-// }
+  return await response.json()
+}
