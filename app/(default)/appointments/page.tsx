@@ -1,8 +1,7 @@
 "use client";
 
 import Card from './card';
-import Sidebar from './sidebar';
-import AppointmentModal from './appointment-modal';
+import Sidebar from './sidebar'; 
 import { Appointment } from '@/lib/types';
 import { ApiError, fetchAppointments } from '@/lib/api';
 import { useEffect, useState } from 'react';

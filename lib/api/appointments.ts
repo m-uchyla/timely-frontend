@@ -14,12 +14,21 @@ export async function fetchAppointments(params?: {
   
   if (params?.page) searchParams.append('page', params.page.toString())
   if (params?.limit) searchParams.append('limit', params.limit.toString())
-  if (params?.status && params.status !== 'today') searchParams.append('status', params.status)
-  if(params?.status === 'today'){
-    searchParams.append('status', 'pending,confirmed,archived')
-  } 
-  if(params?.date) {
-    searchParams.append('date', params.date)
+  if (params?.date) searchParams.append('date', params.date)
+  
+  // Handle status filtering
+  if (params?.status) {
+    switch (params.status) {
+      case 'today':
+        searchParams.append('status', 'pending,confirmed')
+        break
+      case 'archived':
+        searchParams.append('archivedOnly', 'true')
+        break
+      default:
+        searchParams.append('status', params.status)
+        break
+    }
   }
 
   const queryString = searchParams.toString()
@@ -53,12 +62,12 @@ export async function fetchAppointments(params?: {
   if ((params && params.status) && appointmentsData && Array.isArray(appointmentsData.data)) {
     appointmentsData.data = appointmentsData.data.sort((a: Appointment, b: Appointment) => {
       // If both are archived or both are not archived, maintain original order
-      if ((a.status === 'archived') === (b.status === 'archived')) {
+      if (a.isArchived === b.isArchived) {
         return 0
       }
       // Push archived appointments to the end
-      if (a.status === 'archived') return 1
-      if (b.status === 'archived') return -1
+      if (a.isArchived) return 1
+      if (b.isArchived) return -1
       return 0
     })
   }

@@ -10,7 +10,7 @@ export function isValidAppointment(data: any): data is Appointment {
     typeof data.startTime === 'string' &&
     typeof data.endTime === 'string' &&
     typeof data.status === 'string' &&
-    ['pending', 'confirmed', 'declined', 'cancelled', 'archived'].includes(data.status) &&
+    ['pending', 'confirmed', 'declined', 'cancelled'].includes(data.status) &&
     (data.notes === undefined || data.notes === null || typeof data.notes === 'string') &&
     (data.cancellationReason === undefined || data.cancellationReason === null || typeof data.cancellationReason === 'string') &&
     (data.price === undefined || data.price === null || typeof data.price === 'number') &&
@@ -153,6 +153,7 @@ export function validateAppointmentForm(formData: any): {
       isValid: true,
       errors: [],
       data: {
+        isArchived: formData.isArchived,
         date: formData.date,
         startTime: formData.startTime.trim(),
         endTime: formData.endTime.trim(),
@@ -189,11 +190,10 @@ export function validateAppointmentForm(formData: any): {
 // Helper function to validate appointment status transitions
 export function isValidStatusTransition(currentStatus: Appointment['status'], newStatus: Appointment['status']): boolean {
   const validTransitions: Record<Appointment['status'], Appointment['status'][]> = {
-    pending: ['confirmed', 'declined', 'cancelled', 'archived'],
-    confirmed: ['cancelled', 'archived'],
-    declined: ['pending', 'archived'],
-    cancelled: ['archived'],
-    archived: []
+    pending: ['confirmed', 'declined', 'cancelled'],
+    confirmed: ['cancelled'],
+    declined: ['pending'],
+    cancelled: [],
   }
 
   return validTransitions[currentStatus]?.includes(newStatus) || false

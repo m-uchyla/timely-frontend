@@ -9,18 +9,16 @@ interface CardProps {
 
 export default function Card({ appointment, isSelected = false, onSelect }: CardProps) {
    const statusColor = new Map([
-    ['pending', 'bg-yellow-500/20 text-yellow-700'],
-    ['confirmed', 'bg-green-500/20 text-green-700'],
-    ['declined', 'bg-gray-500/20 text-red-400'],
-    ['cancelled', 'bg-red-500/20 text-red-700'],
-    ['archived', 'bg-gray-500/20 text-gray-500']
+    ['pending', `${appointment.isArchived ? 'bg-gray-500/20  text-yellow-700/30' : 'bg-yellow-500/20  text-yellow-700'}`],
+    ['confirmed', `${appointment.isArchived ? 'bg-gray-500/20  text-green-700/30' : 'bg-green-500/20  text-green-700'}`],
+    ['declined', `${appointment.isArchived ? 'bg-gray-500/20  text-orange-400/30' : 'bg-orange-500/20  text-orange-400'}`],
+    ['cancelled', `${appointment.isArchived ? 'bg-gray-500/20  text-red-500/30' : 'bg-red-500/20  text-red-700'}`],
   ]);
   const statusToText = new Map([
     ['pending', 'Oczekująca'],
     ['confirmed', 'Aktywna'],
     ['declined', 'Odrzucona'],
     ['cancelled', 'Anulowana'],
-    ['archived', 'Zarchiwizowana']
   ]);
   return (<label className="relative block cursor-pointer text-left w-full bg-white dark:bg-gray-900">
             <input 

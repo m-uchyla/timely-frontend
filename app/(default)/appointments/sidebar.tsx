@@ -13,26 +13,24 @@ interface SidebarProps {
 }
 
 // Helper functions for status display
-const getStatusColor = (status: Appointment['status']): string => {
+const getStatusColor = (status: Appointment['status'], isArchived: boolean): string => {
   const statusColors = {
     pending: 'bg-yellow-500',
     confirmed: 'bg-green-500',
-    declined: 'bg-gray-500',
-    cancelled: 'bg-red-500',
-    archived: 'bg-gray-800'
+    declined: 'bg-orange-500',
+    cancelled: 'bg-red-500'
   };
-  return statusColors[status];
+  return isArchived ? 'bg-gray-500' : statusColors[status];
 };
 
-const getStatusText = (status: Appointment['status']): string => {
+const getStatusText = (status: Appointment['status'], isArchived: boolean): string => {
   const statusTexts = {
     pending: 'Oczekująca',
     confirmed: 'Potwierdzona',
     declined: 'Odrzucona',
-    cancelled: 'Anulowana',
-    archived: 'Zarchiwizowana'
+    cancelled: 'Anulowana'
   };
-  return statusTexts[status];
+  return isArchived ? `Zarchiwizowana (${statusTexts[status]})` : statusTexts[status];
 };
 
 export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: SidebarProps) {
@@ -185,8 +183,8 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
                           Status
                         </div>
                         <div className="flex items-center whitespace-nowrap">
-                          <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(selectedAppointment.status)}`} />
-                          <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{getStatusText(selectedAppointment.status)}</div>
+                          <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(selectedAppointment.status, selectedAppointment.isArchived)}`} />
+                          <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{getStatusText(selectedAppointment.status, selectedAppointment.isArchived)}</div>
                         </div>
                       </li>
                       {selectedAppointment.price && (
@@ -228,7 +226,7 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
 
                   {/* Action Buttons */}
                   <div className="flex flex-col space-y-3 mt-6">
-                    {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed') && (
+                    {((selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed')  && !selectedAppointment.isArchived) && (
                       <>
                         {selectedAppointment.status === 'pending' && (
                           <button 
