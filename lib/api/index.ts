@@ -1,6 +1,7 @@
 export * from './employees';
 export * from './services';
 export * from './appointments';
+export * from './panel-info';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (
   process.env.NODE_ENV === 'development' 
