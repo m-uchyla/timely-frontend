@@ -58,19 +58,38 @@ export async function fetchAppointments(params?: {
   //   appointmentsData.data = validateAppointmentArray(appointmentsData.data)
   // }
 
-  // Sort appointments to push archived ones to the end
-  if ((params && params.status) && appointmentsData && Array.isArray(appointmentsData.data)) {
+  // Sort appointments
+  if (appointmentsData && Array.isArray(appointmentsData.data)) {
     appointmentsData.data = appointmentsData.data.sort((a: Appointment, b: Appointment) => {
-      // If both are archived or both are not archived, maintain original order
-      if (a.isArchived === b.isArchived) {
-        return 0
+      // First priority: Push archived appointments to the end
+      if (a.isArchived !== b.isArchived) {
+        if (a.isArchived) return 1
+        if (b.isArchived) return -1
       }
-      // Push archived appointments to the end
-      if (a.isArchived) return 1
-      if (b.isArchived) return -1
+      
+      // Second priority: If status filter is 'pending', sort by date and time (ascending)
+      if (params?.status === 'pending') {
+        // Convert dates to comparable format
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        
+        // First sort by date
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA.getTime() - dateB.getTime()
+        }
+        
+        // If dates are the same, sort by start time
+        const timeA = a.startTime
+        const timeB = b.startTime
+        return timeA.localeCompare(timeB)
+      }
+      
+      // Default: maintain original order for other cases
       return 0
     })
   }
+
+
 
   return appointmentsData
 }

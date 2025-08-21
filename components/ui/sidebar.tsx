@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAppProvider } from '@/app/app-provider'
 import { useSelectedLayoutSegments } from 'next/navigation'
 import { useWindowWidth } from '@/components/utils/use-window-width'
+import { useOrganizationInfo, useNotificationCounts } from '@/lib/hooks'
 import SidebarLinkGroup from './sidebar-link-group'
 import SidebarLink from './sidebar-link'
 import Logo from './logo'
@@ -13,6 +14,8 @@ export default function Sidebar({
 }: {
   variant?: 'default' | 'v2'
 }) {
+  const organizationInfo = useOrganizationInfo()
+  const { pending } = useNotificationCounts()
   const sidebar = useRef<HTMLDivElement>(null)
   const { sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded } = useAppProvider()
   const segments = useSelectedLayoutSegments()  
@@ -82,7 +85,9 @@ export default function Sidebar({
               <span className="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">
                 •••
               </span>
-              <span className="lg:hidden lg:sidebar-expanded:block 2xl:block">Timely</span>
+              <span className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                {organizationInfo?.name || 'Loading...'}
+              </span>
             </h3>
             <ul className="mt-3">
               {/* Dashboard */}
@@ -164,9 +169,13 @@ export default function Sidebar({
                       Rezerwacje
                     </span>
                     {/* Badge */}
-                    <div className="flex shrink-0 ml-2">
-                      <span className="inline-flex items-center justify-center h-5 text-xs font-medium text-white bg-violet-400 px-2 rounded-sm">4</span>
-                    </div>
+                    {pending > 0 && (
+                      <div className="flex shrink-0 ml-2">
+                        <span className="inline-flex items-center justify-center h-5 text-xs font-medium text-white bg-violet-400 px-2 rounded-sm">
+                          {pending}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </SidebarLink>
               </li>

@@ -4,7 +4,8 @@ import ServiceCard from "../services/service-card";
 import { Appointment } from '@/lib/types';
 import { formatDateToYMD, formatTimeToHM } from '@/lib/utils';
 import { confirmAppointment, declineAppointment, ApiError } from '@/lib/api';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePanelInfo } from '@/lib/hooks';
 import Toast from "@/components/toast";
 
 interface SidebarProps {
@@ -38,10 +39,48 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
   const [isDeclining, setIsDeclining] = useState(false);
   const [showDeclineReason, setShowDeclineReason] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
-  const [toastConfirmErrorOpen, setToastConfirmErrorOpen] = useState<boolean>(true)
-  const [toastConfirmSuccessOpen, setToastConfirmSuccessOpen] = useState<boolean>(true)
-  const [toastDeclineErrorOpen, setToastDeclineErrorOpen] = useState<boolean>(true)
-  const [toastDeclineSuccessOpen, setToastDeclineSuccessOpen] = useState<boolean>(true)
+  const [toastConfirmErrorOpen, setToastConfirmErrorOpen] = useState<boolean>(false)
+  const [toastConfirmSuccessOpen, setToastConfirmSuccessOpen] = useState<boolean>(false)
+  const [toastDeclineErrorOpen, setToastDeclineErrorOpen] = useState<boolean>(false)
+  const [toastDeclineSuccessOpen, setToastDeclineSuccessOpen] = useState<boolean>(false)
+  const { refreshPanelInfo } = usePanelInfo()
+
+  // Auto-dismiss toasts after 20 seconds
+  useEffect(() => {
+    if (toastConfirmSuccessOpen) {
+      const timer = setTimeout(() => {
+        setToastConfirmSuccessOpen(false)
+      }, 5000) // 5 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [toastConfirmSuccessOpen])
+
+  useEffect(() => {
+    if (toastConfirmErrorOpen) {
+      const timer = setTimeout(() => {
+        setToastConfirmErrorOpen(false)
+      }, 5000) // 5 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [toastConfirmErrorOpen])
+
+  useEffect(() => {
+    if (toastDeclineSuccessOpen) {
+      const timer = setTimeout(() => {
+        setToastDeclineSuccessOpen(false)
+      }, 5000) // 5 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [toastDeclineSuccessOpen])
+
+  useEffect(() => {
+    if (toastDeclineErrorOpen) {
+      const timer = setTimeout(() => {
+        setToastDeclineErrorOpen(false)
+      }, 5000 ) // 5 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [toastDeclineErrorOpen])
 
   const handleConfirmAppointment = async () => {
     if (!selectedAppointment) return;
@@ -50,14 +89,11 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
     try {
       await confirmAppointment(selectedAppointment.id);
       onAppointmentUpdated?.();
-      <Toast type="success" open={toastConfirmSuccessOpen} setOpen={setToastConfirmSuccessOpen}>
-        Rezerwacja została potwierdzona
-      </Toast>
+      refreshPanelInfo(); // Refresh panel info to update pending count
+      setToastConfirmSuccessOpen(true)
     } catch (error) {
       console.error('Error confirming appointment:', error);
-      <Toast type="error" open={toastConfirmErrorOpen} setOpen={setToastConfirmErrorOpen}>
-        Wystąpił błąd podczas potwierdzania rezerwacji
-      </Toast>
+      setToastConfirmErrorOpen(true)
     } finally {
       setIsConfirming(false);
     }
@@ -75,16 +111,13 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
     try {
       await declineAppointment(selectedAppointment.id, declineReason.trim() || undefined);
       onAppointmentUpdated?.();
+      refreshPanelInfo(); // Refresh panel info to update pending count
       setShowDeclineReason(false);
       setDeclineReason('');
-      <Toast type="success" open={toastDeclineSuccessOpen} setOpen={setToastDeclineSuccessOpen}>
-        Rezerwacja została odrzucona
-      </Toast>
+      setToastDeclineSuccessOpen(true)
     } catch (error) {
       console.error('Error declining appointment:', error);
-      <Toast type="error" open={toastDeclineErrorOpen} setOpen={setToastDeclineErrorOpen}>
-        Wystąpił błąd podczas odrzucania rezerwacji
-      </Toast>
+      setToastDeclineErrorOpen(true)
     } finally {
       setIsDeclining(false);
     }
@@ -96,7 +129,8 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
   };
 
   return (
-    <div>
+    <>
+      <div>
         <div className="lg:sticky lg:top-16 bg-linear-to-b from-gray-100 to-white dark:from-gray-800/30 dark:to-gray-900 lg:overflow-x-hidden lg:overflow-y-auto no-scrollbar lg:shrink-0 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700/60 lg:w-[390px] lg:h-[calc(100dvh-64px)]">
           <div className="py-8 px-4 lg:px-8">
             <div className="max-w-sm mx-auto lg:max-w-none">
@@ -309,5 +343,22 @@ export default function Sidebar({ selectedAppointment, onAppointmentUpdated }: S
           </div>
         </div>
       </div>
+
+      {/* Toast Messages */}
+      <div className="fixed bottom-0 right-0 p-4 lg:p-8 z-50">
+        <Toast type="success" open={toastConfirmSuccessOpen} setOpen={setToastConfirmSuccessOpen}>
+          Rezerwacja została potwierdzona
+        </Toast>
+        <Toast type="error" open={toastConfirmErrorOpen} setOpen={setToastConfirmErrorOpen}>
+          Wystąpił błąd podczas potwierdzania rezerwacji
+        </Toast>
+        <Toast type="success" open={toastDeclineSuccessOpen} setOpen={setToastDeclineSuccessOpen}>
+          Rezerwacja została odrzucona
+        </Toast>
+        <Toast type="error" open={toastDeclineErrorOpen} setOpen={setToastDeclineErrorOpen}>
+          Wystąpił błąd podczas odrzucania rezerwacji
+        </Toast>
+      </div>
+    </>
   );
 }

@@ -5,6 +5,7 @@ import Sidebar from './sidebar';
 import { Appointment } from '@/lib/types';
 import { ApiError, fetchAppointments } from '@/lib/api';
 import { useEffect, useState } from 'react';
+import { useNotificationCounts } from '@/lib/hooks';
 
 export default function CreditCards() {
 
@@ -13,6 +14,7 @@ export default function CreditCards() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const { pending } = useNotificationCounts()
   
   // Pagination and filtering state
   const [currentPage, setCurrentPage] = useState(1)
@@ -46,6 +48,14 @@ export default function CreditCards() {
           })
 
           setAppointments(response.data)
+          
+          // Update selected appointment with fresh data if one is selected
+          if (selectedAppointment) {
+            const updatedAppointment = response.data.find(apt => apt.id === selectedAppointment.id)
+            if (updatedAppointment) {
+              setSelectedAppointment(updatedAppointment)
+            }
+          }
         } catch (err) {
           if (err instanceof ApiError) {
             setError(`Nie udało się załadować rezerwacji. Prosimy o kontakt z supportem.`)
@@ -116,7 +126,16 @@ export default function CreditCards() {
                       : 'border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                   }`}
                 >
-                  Oczekujące
+                  <span>Oczekujące</span>
+                  {pending > 0 && (
+                    <span className={`ml-2 inline-flex items-center justify-center h-4 min-w-[16px] text-xs font-medium rounded-full px-1.5 ${
+                      status === 'pending'
+                        ? 'bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100'
+                        : 'bg-violet-500 text-white'
+                    }`}>
+                      {pending}
+                    </span>
+                  )}
                 </button>
               </li>
               <li className="m-1">
@@ -173,7 +192,7 @@ export default function CreditCards() {
           {/* Pagination Controls */}
           <div className="flex items-center gap-4">
             {/* Items per page selector */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Pokaż:</span>
               <select 
                 value={limit}
@@ -184,7 +203,7 @@ export default function CreditCards() {
                 <option value={15}>15</option>
                 <option value={30}>30</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Previous/Next buttons */}
             <nav role="navigation" aria-label="Pagination">
